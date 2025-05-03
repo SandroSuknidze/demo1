@@ -7,6 +7,9 @@ import com.example.demo.service.ProjectService;
 import com.example.demo.service.TaskService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -86,14 +89,17 @@ public class ProjectController {
     }
 
     /**
-     * Get all tasks in a project.
+     * Get all tasks in a project with pagination.
      * Access is restricted based on a user role.
      *
      * @param id the ID of the project to get tasks for
-     * @return a list of tasks in the project
+     * @param pageable pagination information
+     * @return a page of tasks in the project
      */
     @GetMapping("/{id}/tasks")
-    public ResponseEntity<List<TaskResponseDto>> getProjectTasks(@PathVariable Long id) {
-        return ResponseEntity.ok(taskService.getTasksByProjectId(id));
+    public ResponseEntity<Page<TaskResponseDto>> getProjectTasks(
+            @PathVariable Long id,
+            @PageableDefault(size = 10, sort = "id") Pageable pageable) {
+        return ResponseEntity.ok(taskService.getTasksByProjectId(id, pageable));
     }
 }

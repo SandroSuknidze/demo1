@@ -7,40 +7,10 @@ import com.example.demo.model.enums.TaskStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import java.util.List;
-
 /**
  * Service interface for managing tasks.
  */
 public interface TaskService {
-
-    /**
-     * Get all tasks.
-     * For admins: returns all tasks.
-     * For managers: returns tasks in their own projects.
-     * For users: returns only their own assigned tasks.
-     *
-     * @return a list of tasks based on user role
-     */
-    List<TaskResponseDto> getAllTasks();
-
-    /**
-     * Get all tasks in a specific project.
-     * Access is restricted based on user role.
-     *
-     * @param projectId the ID of the project to get tasks for
-     * @return a list of tasks in the project
-     */
-    List<TaskResponseDto> getTasksByProjectId(Long projectId);
-
-    /**
-     * Get all tasks assigned to a specific user.
-     * Access is restricted based on user role.
-     *
-     * @param userId the ID of the user to get tasks for
-     * @return a list of tasks assigned to the user
-     */
-    List<TaskResponseDto> getTasksByAssignedUserId(Long userId);
 
     /**
      * Get a task by ID.
@@ -70,7 +40,16 @@ public interface TaskService {
      */
     TaskResponseDto updateTask(Long id, TaskRequestDto requestDto);
 
-
+    /**
+     * Update the status of a task.
+     * Regular users can only update status of tasks assigned to them.
+     * Managers can update status of tasks in their projects.
+     * Admins can update any task.
+     *
+     * @param id the ID of the task to update
+     * @param status the new status
+     * @return the updated task
+     */
     TaskResponseDto updateTaskStatus(Long id, TaskStatus status);
 
     /**
@@ -112,6 +91,26 @@ public interface TaskService {
     Page<TaskResponseDto> getAllTasks(Pageable pageable);
 
     /**
+     * Get all tasks in a specific project with pagination.
+     * Access is restricted based on user role.
+     *
+     * @param projectId the ID of the project to get tasks for
+     * @param pageable the pagination information
+     * @return a page of tasks in the project
+     */
+    Page<TaskResponseDto> getTasksByProjectId(Long projectId, Pageable pageable);
+
+    /**
+     * Get all tasks assigned to a specific user with pagination.
+     * Access is restricted based on user role.
+     *
+     * @param userId the ID of the user to get tasks for
+     * @param pageable the pagination information
+     * @return a page of tasks assigned to the user
+     */
+    Page<TaskResponseDto> getTasksByAssignedUserId(Long userId, Pageable pageable);
+
+    /**
      * Get all tasks with a specific status with pagination.
      * Access is restricted based on user role.
      *
@@ -141,24 +140,4 @@ public interface TaskService {
      * @return a page of tasks with the specified status and priority
      */
     Page<TaskResponseDto> getTasksByStatusAndPriority(TaskStatus status, Priority priority, Pageable pageable);
-
-    /**
-     * Get all tasks in a specific project with pagination.
-     * Access is restricted based on user role.
-     *
-     * @param projectId the ID of the project to get tasks for
-     * @param pageable the pagination information
-     * @return a page of tasks in the project
-     */
-    Page<TaskResponseDto> getTasksByProjectId(Long projectId, Pageable pageable);
-
-    /**
-     * Get all tasks assigned to a specific user with pagination.
-     * Access is restricted based on user role.
-     *
-     * @param userId the ID of the user to get tasks for
-     * @param pageable the pagination information
-     * @return a page of tasks assigned to the user
-     */
-    Page<TaskResponseDto> getTasksByAssignedUserId(Long userId, Pageable pageable);
 }

@@ -21,12 +21,4 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
      * @return a list of projects owned by the user
      */
     List<Project> findByOwner(User owner);
-    
-    /**
-     * Find all projects owned by a user with the specified ID.
-     *
-     * @param ownerId the ID of the user who owns the projects
-     * @return a list of projects owned by the user
-     */
-    List<Project> findByOwnerId(Long ownerId);
 }
