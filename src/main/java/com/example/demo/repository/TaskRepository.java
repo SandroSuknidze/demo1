@@ -1,6 +1,7 @@
 package com.example.demo.repository;
 
 import com.example.demo.model.entity.Task;
+import com.example.demo.model.entity.User;
 import com.example.demo.model.enums.Priority;
 import com.example.demo.model.enums.TaskStatus;
 import org.springframework.data.domain.Page;
@@ -8,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -146,4 +148,6 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
      * @return a page of tasks assigned to the user within the specified projects
      */
     Page<Task> findByAssignedUserIdAndProjectIdIn(Long userId, List<Long> projectIds, Pageable pageable);
+
+    Collection<Object> findByAssignedUserAndProjectId(User currentUser, Long projectId);
 }
