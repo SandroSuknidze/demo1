@@ -5,11 +5,8 @@ import com.example.demo.dto.task.TaskResponseDto;
 import com.example.demo.model.entity.Project;
 import com.example.demo.model.entity.Task;
 import com.example.demo.model.entity.User;
-import lombok.RequiredArgsConstructor;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * Mapper class for converting between Task entity and DTOs.

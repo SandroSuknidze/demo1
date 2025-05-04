@@ -1,8 +1,6 @@
 package com.example.demo.repository;
 
-import com.example.demo.model.entity.Project;
 import com.example.demo.model.entity.Task;
-import com.example.demo.model.entity.User;
 import com.example.demo.model.enums.Priority;
 import com.example.demo.model.enums.TaskStatus;
 import org.springframework.data.domain.Page;
