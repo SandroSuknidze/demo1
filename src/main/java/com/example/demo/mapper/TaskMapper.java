@@ -54,8 +54,8 @@ public interface TaskMapper {
      */
     @Mapping(target = "project", source = "project")
     @Mapping(target = "assignedUser", source = "assignedUser")
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "createDate", ignore = true)
+    @Mapping(target = "id", source = "task.id")
+    @Mapping(target = "createDate", source = "task.createDate")
     @Mapping(target = "updateDate", ignore = true)
     @Mapping(target = "description", source = "requestDto.description")
     @Mapping(target = "title", source = "requestDto.title")

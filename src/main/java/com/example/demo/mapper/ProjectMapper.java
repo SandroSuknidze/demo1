@@ -46,8 +46,9 @@ public interface ProjectMapper {
      */
     @Mapping(target = "name", source = "requestDto.name")
     @Mapping(target = "description", source = "requestDto.description")
-    @Mapping(target = "owner", ignore = true)
-    @Mapping(target = "createDate", ignore = true)
+    @Mapping(target = "owner", source = "project.owner")
+    @Mapping(target = "id", source = "project.id")
+    @Mapping(target = "createDate", source = "project.createDate")
     @Mapping(target = "updateDate", ignore = true)
     Project updateEntity(Project project, ProjectRequestDto requestDto);
 }

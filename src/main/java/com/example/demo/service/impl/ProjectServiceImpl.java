@@ -15,6 +15,7 @@ import com.example.demo.service.ProjectService;
 import com.example.demo.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -97,6 +98,11 @@ public class ProjectServiceImpl implements ProjectService {
 
         if (!userService.isAdmin() && !isProjectOwner(id)) {
             throw new AccessDeniedException("You don't have permission to delete this project");
+        }
+
+        List<Task> tasks = taskRepository.findByProjectId(id, Pageable.unpaged()).getContent();
+        for (Task task : tasks) {
+            taskRepository.deleteById(task.getId());
         }
 
         projectRepository.deleteById(id);

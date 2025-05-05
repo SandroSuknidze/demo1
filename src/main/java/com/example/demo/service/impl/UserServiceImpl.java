@@ -5,12 +5,17 @@ import com.example.demo.dto.user.UserResponseDto;
 import com.example.demo.exception.AccessDeniedException;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.mapper.UserMapper;
+import com.example.demo.model.entity.Project;
+import com.example.demo.model.entity.Task;
 import com.example.demo.model.entity.User;
 import com.example.demo.model.enums.Role;
+import com.example.demo.repository.ProjectRepository;
+import com.example.demo.repository.TaskRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -27,6 +32,8 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final ProjectRepository projectRepository;
+    private final TaskRepository taskRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
@@ -69,6 +76,25 @@ public class UserServiceImpl implements UserService {
         if (!isAdmin()) {
             throw new AccessDeniedException("Only administrators can delete users");
         }
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+
+        List<Project> ownedProjects = projectRepository.findByOwner(user);
+        for (Project project : ownedProjects) {
+            List<Task> projectTasks = taskRepository.findByProjectId(project.getId(), Pageable.unpaged()).getContent();
+            for (Task task : projectTasks) {
+                taskRepository.deleteById(task.getId());
+            }
+            projectRepository.deleteById(project.getId());
+        }
+
+        Page<Task> assignedTasks = taskRepository.findByAssignedUserId(id, Pageable.unpaged());
+        for (Task task : assignedTasks.getContent()) {
+            task.setAssignedUser(null);
+            taskRepository.save(task);
+        }
+
         userRepository.deleteById(id);
     }
 
