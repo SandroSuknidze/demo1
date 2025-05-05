@@ -192,12 +192,13 @@ class UserServiceImplTest {
     void deleteUser_WhenUserExistsAndCurrentUserIsAdmin_ShouldDeleteUser() {
         // Arrange
         when(userRepository.existsById(2L)).thenReturn(true);
-        
+
         // Mock SecurityContextHolder
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
-        
+
         when(authentication.getPrincipal()).thenReturn(userDetails);
+        when(authentication.isAuthenticated()).thenReturn(true);
         when(userDetails.getUsername()).thenReturn("admin@example.com");
         when(userRepository.findByEmail("admin@example.com")).thenReturn(Optional.of(adminUser));
 
@@ -228,6 +229,7 @@ class UserServiceImplTest {
         SecurityContextHolder.setContext(securityContext);
         
         when(authentication.getPrincipal()).thenReturn(userDetails);
+        when(authentication.isAuthenticated()).thenReturn(true);
         when(userDetails.getUsername()).thenReturn("user@example.com");
         when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(regularUser));
 

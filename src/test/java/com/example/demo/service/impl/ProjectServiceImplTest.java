@@ -143,8 +143,8 @@ class ProjectServiceImplTest {
     @Test
     void getProjectById_WhenProjectExistsAndUserHasAccess_ShouldReturnProject() {
         // Arrange
+        when(userService.getCurrentUser()).thenReturn(managerUser);
         when(projectRepository.findById(1L)).thenReturn(Optional.of(project));
-        when(projectService.hasProjectAccess(1L)).thenReturn(true);
         when(projectMapper.toResponseDto(project)).thenReturn(projectResponseDto);
 
         // Act
@@ -154,7 +154,7 @@ class ProjectServiceImplTest {
         assertNotNull(result);
         assertEquals(1L, result.getId());
         assertEquals("Test Project", result.getName());
-        verify(projectRepository).findById(1L);
+        verify(projectRepository, times(2)).findById(1L);
     }
 
     @Test
@@ -171,7 +171,7 @@ class ProjectServiceImplTest {
     void getProjectById_WhenUserDoesNotHaveAccess_ShouldThrowAccessDeniedException() {
         // Arrange
         when(projectRepository.findById(1L)).thenReturn(Optional.of(project));
-        when(projectService.hasProjectAccess(1L)).thenReturn(false);
+        when(userService.getCurrentUser()).thenReturn(regularUser);
 
         // Act & Assert
         assertThrows(AccessDeniedException.class, () -> projectService.getProjectById(1L));
@@ -220,7 +220,7 @@ class ProjectServiceImplTest {
         // Arrange
         when(projectRepository.findById(1L)).thenReturn(Optional.of(project));
         when(userService.isAdmin()).thenReturn(false);
-        when(projectService.isProjectOwner(1L)).thenReturn(true);
+        when(userService.getCurrentUser()).thenReturn(managerUser);
         when(projectMapper.updateEntity(project, projectRequestDto)).thenReturn(project);
         when(projectRepository.save(project)).thenReturn(project);
         when(projectMapper.toResponseDto(project)).thenReturn(projectResponseDto);
@@ -250,7 +250,7 @@ class ProjectServiceImplTest {
         // Arrange
         when(projectRepository.findById(1L)).thenReturn(Optional.of(project));
         when(userService.isAdmin()).thenReturn(false);
-        when(projectService.isProjectOwner(1L)).thenReturn(false);
+        when(userService.getCurrentUser()).thenReturn(regularUser);
 
         // Act & Assert
         assertThrows(AccessDeniedException.class, () -> projectService.updateProject(1L, projectRequestDto));
@@ -275,7 +275,8 @@ class ProjectServiceImplTest {
         // Arrange
         when(projectRepository.existsById(1L)).thenReturn(true);
         when(userService.isAdmin()).thenReturn(false);
-        when(projectService.isProjectOwner(1L)).thenReturn(true);
+        when(userService.getCurrentUser()).thenReturn(managerUser);
+        when(projectRepository.findById(1L)).thenReturn(Optional.of(project));
 
         // Act
         projectService.deleteProject(1L);
@@ -299,7 +300,8 @@ class ProjectServiceImplTest {
         // Arrange
         when(projectRepository.existsById(1L)).thenReturn(true);
         when(userService.isAdmin()).thenReturn(false);
-        when(projectService.isProjectOwner(1L)).thenReturn(false);
+        when(userService.getCurrentUser()).thenReturn(regularUser);
+        when(projectRepository.findById(1L)).thenReturn(Optional.of(project));
 
         // Act & Assert
         assertThrows(AccessDeniedException.class, () -> projectService.deleteProject(1L));
@@ -348,7 +350,7 @@ class ProjectServiceImplTest {
     void hasProjectAccess_WhenUserIsManagerAndOwner_ShouldReturnTrue() {
         // Arrange
         when(userService.getCurrentUser()).thenReturn(managerUser);
-        when(projectService.isProjectOwner(1L)).thenReturn(true);
+        when(projectRepository.findById(1L)).thenReturn(Optional.of(project));
 
         // Act
         boolean result = projectService.hasProjectAccess(1L);
