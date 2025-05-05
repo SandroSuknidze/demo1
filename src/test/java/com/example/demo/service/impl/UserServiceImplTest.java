@@ -5,8 +5,10 @@ import com.example.demo.dto.user.UserResponseDto;
 import com.example.demo.exception.AccessDeniedException;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.mapper.UserMapper;
+import com.example.demo.model.entity.Task;
 import com.example.demo.model.entity.User;
 import com.example.demo.model.enums.Role;
+import com.example.demo.repository.TaskRepository;
 import com.example.demo.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,6 +21,8 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,6 +30,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,6 +38,9 @@ class UserServiceImplTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private TaskRepository taskRepository;
 
     @Mock
     private UserMapper userMapper;
@@ -145,7 +153,7 @@ class UserServiceImplTest {
                 .password("rawPassword")
                 .role(Role.USER)
                 .build();
-        
+
         User savedUser = User.builder()
                 .id(3L)
                 .email("newuser@example.com")
@@ -153,7 +161,7 @@ class UserServiceImplTest {
                 .role(Role.USER)
                 .createDate(LocalDateTime.now())
                 .build();
-        
+
         UserResponseDto savedUserDto = UserResponseDto.builder()
                 .id(3L)
                 .email("newuser@example.com")
@@ -191,7 +199,7 @@ class UserServiceImplTest {
     @Test
     void deleteUser_WhenUserExistsAndCurrentUserIsAdmin_ShouldDeleteUser() {
         // Arrange
-        when(userRepository.existsById(2L)).thenReturn(true);
+        when(userRepository.findById(2L)).thenReturn(Optional.of(regularUser));
 
         // Mock SecurityContextHolder
         when(securityContext.getAuthentication()).thenReturn(authentication);
@@ -202,32 +210,43 @@ class UserServiceImplTest {
         when(userDetails.getUsername()).thenReturn("admin@example.com");
         when(userRepository.findByEmail("admin@example.com")).thenReturn(Optional.of(adminUser));
 
+        // Mock taskRepository
+        Page<Task> emptyPage = mock(Page.class);
+        when(emptyPage.isEmpty()).thenReturn(true);
+        when(taskRepository.findByAssignedUserId(eq(2L), any(Pageable.class))).thenReturn(emptyPage);
+
         // Act
         userService.deleteUser(2L);
 
         // Assert
-        verify(userRepository).deleteById(2L);
+        verify(userRepository).delete(regularUser);
     }
 
     @Test
     void deleteUser_WhenUserDoesNotExist_ShouldThrowResourceNotFoundException() {
         // Arrange
-        when(userRepository.existsById(99L)).thenReturn(false);
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
+
+        // Mock SecurityContextHolder
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+        when(authentication.getPrincipal()).thenReturn(userDetails);
+        when(authentication.isAuthenticated()).thenReturn(true);
+        when(userDetails.getUsername()).thenReturn("admin@example.com");
+        when(userRepository.findByEmail("admin@example.com")).thenReturn(Optional.of(adminUser));
 
         // Act & Assert
         assertThrows(ResourceNotFoundException.class, () -> userService.deleteUser(99L));
-        verify(userRepository, never()).deleteById(anyLong());
+        verify(userRepository, never()).delete(any(User.class));
     }
 
     @Test
     void deleteUser_WhenCurrentUserIsNotAdmin_ShouldThrowAccessDeniedException() {
         // Arrange
-        when(userRepository.existsById(1L)).thenReturn(true);
-        
         // Mock SecurityContextHolder
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
-        
+
         when(authentication.getPrincipal()).thenReturn(userDetails);
         when(authentication.isAuthenticated()).thenReturn(true);
         when(userDetails.getUsername()).thenReturn("user@example.com");
@@ -235,7 +254,7 @@ class UserServiceImplTest {
 
         // Act & Assert
         assertThrows(AccessDeniedException.class, () -> userService.deleteUser(1L));
-        verify(userRepository, never()).deleteById(anyLong());
+        verify(userRepository, never()).delete(any(User.class));
     }
 
     @Test
@@ -243,7 +262,7 @@ class UserServiceImplTest {
         // Arrange
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
-        
+
         when(authentication.isAuthenticated()).thenReturn(true);
         when(authentication.getPrincipal()).thenReturn(userDetails);
         when(userDetails.getUsername()).thenReturn("user@example.com");
@@ -263,7 +282,7 @@ class UserServiceImplTest {
         // Arrange
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
-        
+
         when(authentication.isAuthenticated()).thenReturn(false);
 
         // Act
@@ -278,7 +297,7 @@ class UserServiceImplTest {
         // Arrange
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
-        
+
         when(authentication.isAuthenticated()).thenReturn(true);
         when(authentication.getPrincipal()).thenReturn(userDetails);
         when(userDetails.getUsername()).thenReturn("admin@example.com");
@@ -296,7 +315,7 @@ class UserServiceImplTest {
         // Arrange
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
-        
+
         when(authentication.isAuthenticated()).thenReturn(true);
         when(authentication.getPrincipal()).thenReturn(userDetails);
         when(userDetails.getUsername()).thenReturn("user@example.com");

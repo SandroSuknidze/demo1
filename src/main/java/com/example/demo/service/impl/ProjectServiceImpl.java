@@ -6,7 +6,6 @@ import com.example.demo.exception.AccessDeniedException;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.mapper.ProjectMapper;
 import com.example.demo.model.entity.Project;
-import com.example.demo.model.entity.Task;
 import com.example.demo.model.entity.User;
 import com.example.demo.model.enums.Role;
 import com.example.demo.repository.ProjectRepository;
@@ -14,8 +13,6 @@ import com.example.demo.repository.TaskRepository;
 import com.example.demo.service.ProjectService;
 import com.example.demo.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -92,20 +89,15 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     @Transactional
     public void deleteProject(Long id) {
-        if (!projectRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Project", "id", id);
-        }
+        Project project = projectRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Project", "id", id));
 
         if (!userService.isAdmin() && !isProjectOwner(id)) {
             throw new AccessDeniedException("You don't have permission to delete this project");
         }
 
-        List<Task> tasks = taskRepository.findByProjectId(id, Pageable.unpaged()).getContent();
-        for (Task task : tasks) {
-            taskRepository.deleteById(task.getId());
-        }
 
-        projectRepository.deleteById(id);
+        projectRepository.delete(project);
     }
 
     @Override

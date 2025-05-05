@@ -261,20 +261,19 @@ class ProjectServiceImplTest {
     @Test
     void deleteProject_WhenProjectExistsAndUserIsAdmin_ShouldDeleteProject() {
         // Arrange
-        when(projectRepository.existsById(1L)).thenReturn(true);
+        when(projectRepository.findById(1L)).thenReturn(Optional.of(project));
         when(userService.isAdmin()).thenReturn(true);
 
         // Act
         projectService.deleteProject(1L);
 
         // Assert
-        verify(projectRepository).deleteById(1L);
+        verify(projectRepository).delete(project);
     }
 
     @Test
     void deleteProject_WhenProjectExistsAndUserIsOwner_ShouldDeleteProject() {
         // Arrange
-        when(projectRepository.existsById(1L)).thenReturn(true);
         when(userService.isAdmin()).thenReturn(false);
         when(userService.getCurrentUser()).thenReturn(managerUser);
         when(projectRepository.findById(1L)).thenReturn(Optional.of(project));
@@ -283,30 +282,29 @@ class ProjectServiceImplTest {
         projectService.deleteProject(1L);
 
         // Assert
-        verify(projectRepository).deleteById(1L);
+        verify(projectRepository).delete(project);
     }
 
     @Test
     void deleteProject_WhenProjectDoesNotExist_ShouldThrowResourceNotFoundException() {
         // Arrange
-        when(projectRepository.existsById(99L)).thenReturn(false);
+        when(projectRepository.findById(99L)).thenReturn(Optional.empty());
 
         // Act & Assert
         assertThrows(ResourceNotFoundException.class, () -> projectService.deleteProject(99L));
-        verify(projectRepository, never()).deleteById(anyLong());
+        verify(projectRepository, never()).delete(any(Project.class));
     }
 
     @Test
     void deleteProject_WhenUserIsNotAuthorized_ShouldThrowAccessDeniedException() {
         // Arrange
-        when(projectRepository.existsById(1L)).thenReturn(true);
         when(userService.isAdmin()).thenReturn(false);
         when(userService.getCurrentUser()).thenReturn(regularUser);
         when(projectRepository.findById(1L)).thenReturn(Optional.of(project));
 
         // Act & Assert
         assertThrows(AccessDeniedException.class, () -> projectService.deleteProject(1L));
-        verify(projectRepository, never()).deleteById(anyLong());
+        verify(projectRepository, never()).delete(any(Project.class));
     }
 
     @Test

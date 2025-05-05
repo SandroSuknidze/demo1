@@ -5,7 +5,6 @@ import com.example.demo.dto.user.UserResponseDto;
 import com.example.demo.exception.AccessDeniedException;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.mapper.UserMapper;
-import com.example.demo.model.entity.Project;
 import com.example.demo.model.entity.Task;
 import com.example.demo.model.entity.User;
 import com.example.demo.model.enums.Role;
@@ -32,7 +31,6 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final ProjectRepository projectRepository;
     private final TaskRepository taskRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
@@ -69,10 +67,6 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void deleteUser(Long id) {
-        if (!userRepository.existsById(id)) {
-            throw new ResourceNotFoundException("User", "id", id);
-        }
-
         if (!isAdmin()) {
             throw new AccessDeniedException("Only administrators can delete users");
         }
@@ -80,22 +74,14 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
 
-        List<Project> ownedProjects = projectRepository.findByOwner(user);
-        for (Project project : ownedProjects) {
-            List<Task> projectTasks = taskRepository.findByProjectId(project.getId(), Pageable.unpaged()).getContent();
-            for (Task task : projectTasks) {
-                taskRepository.deleteById(task.getId());
-            }
-            projectRepository.deleteById(project.getId());
-        }
-
         Page<Task> assignedTasks = taskRepository.findByAssignedUserId(id, Pageable.unpaged());
-        for (Task task : assignedTasks.getContent()) {
-            task.setAssignedUser(null);
-            taskRepository.save(task);
+        if (!assignedTasks.isEmpty()) {
+            List<Task> tasksToUpdate = assignedTasks.getContent();
+            tasksToUpdate.forEach(task -> task.setAssignedUser(null));
+            taskRepository.saveAll(tasksToUpdate);
         }
 
-        userRepository.deleteById(id);
+        userRepository.delete(user);
     }
 
     @Override

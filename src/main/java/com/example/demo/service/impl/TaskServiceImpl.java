@@ -118,16 +118,14 @@ public class TaskServiceImpl implements TaskService {
 
         User currentUser = userService.getCurrentUser();
         
-        // For regular users, they can only update status of tasks assigned to them
         if (currentUser.getRole() == Role.USER && !isAssignedToTask(id)) {
             throw new AccessDeniedException("You can only update status of tasks assigned to you");
-        } 
-        // Managers can only update status of tasks in their projects
-        else if (currentUser.getRole() == Role.MANAGER && 
+        }
+
+        else if (currentUser.getRole() == Role.MANAGER &&
                 !projectService.isProjectOwner(task.getProject().getId())) {
             throw new AccessDeniedException("You don't have permission to update tasks in this project");
         }
-        // Admins can update any task (no additional check needed)
 
         task.setStatus(status);
         Task updatedTask = taskRepository.save(task);
@@ -183,27 +181,21 @@ public class TaskServiceImpl implements TaskService {
         if (currentUser.getRole() == Role.ADMIN) {
             tasksPage = taskRepository.findAll(pageable);
         } else if (currentUser.getRole() == Role.MANAGER) {
-            // For managers, we need a custom approach since we need to filter by projects they own
             List<Project> projects = projectRepository.findByOwner(currentUser);
 
             if (projects.isEmpty()) {
-                // Return empty page if manager has no projects
                 return new PageImpl<>(List.of(), pageable, 0);
             }
     
-            // Get all project IDs owned by this manager
             List<Long> projectIds = projects.stream()
                     .map(Project::getId)
                     .collect(Collectors.toList());
     
-            // Use a custom repository method to find tasks by project IDs with pagination
             tasksPage = taskRepository.findByProjectIdIn(projectIds, pageable);
         } else {
-            // Users only see tasks assigned to them
             tasksPage = taskRepository.findByAssignedUserId(currentUser.getId(), pageable);
         }
     
-        // Map the Task entities to DTOs while preserving pagination metadata
         return tasksPage.map(taskMapper::toResponseDto);
     }
     
@@ -226,7 +218,6 @@ public class TaskServiceImpl implements TaskService {
                     .map(Project::getId)
                     .collect(Collectors.toList());
     
-            // Assuming a custom method in repository
             tasksPage = taskRepository.findByStatusAndProjectIdIn(status, projectIds, pageable);
         } else {
             tasksPage = taskRepository.findByStatusAndAssignedUserId(status, currentUser.getId(), pageable);
@@ -254,7 +245,6 @@ public class TaskServiceImpl implements TaskService {
                     .map(Project::getId)
                     .collect(Collectors.toList());
     
-            // Assuming a custom method in repository
             tasksPage = taskRepository.findByPriorityAndProjectIdIn(priority, projectIds, pageable);
         } else {
             tasksPage = taskRepository.findByPriorityAndAssignedUserId(priority, currentUser.getId(), pageable);
@@ -282,7 +272,6 @@ public class TaskServiceImpl implements TaskService {
                     .map(Project::getId)
                     .collect(Collectors.toList());
     
-            // Assuming a custom method in repository
             tasksPage = taskRepository.findByStatusAndPriorityAndProjectIdIn(status, priority, projectIds, pageable);
         } else {
             tasksPage = taskRepository.findByStatusAndPriorityAndAssignedUserId(status, priority, currentUser.getId(), pageable);
@@ -294,7 +283,7 @@ public class TaskServiceImpl implements TaskService {
     @Override
     @Transactional(readOnly = true)
     public Page<TaskResponseDto> getTasksByProjectId(Long projectId, Pageable pageable) {
-        Project project = projectRepository.findById(projectId)
+        projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project", "id", projectId));
 
         if (!projectService.hasProjectAccess(projectId)) {
@@ -308,7 +297,7 @@ public class TaskServiceImpl implements TaskService {
     @Override
     @Transactional(readOnly = true)
     public Page<TaskResponseDto> getTasksByAssignedUserId(Long userId, Pageable pageable) {
-        User user = userRepository.findById(userId)
+        userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
         User currentUser = userService.getCurrentUser();
