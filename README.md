@@ -54,6 +54,30 @@ For full access to all API features, you can log in with the following credentia
 
 This admin account has unrestricted access to all endpoints and features.
 
+### Predefined Data
+The application automatically initializes the database with sample data on startup through the `DataInitializer` class. This happens only if the database is empty.
+
+#### Predefined Users
+| Email | Password | Role |
+|-------|----------|------|
+| admin@example.com | password | ADMIN |
+| manager@example.com | password | MANAGER |
+| manager2@example.com | password | MANAGER |
+| user@example.com | password | USER |
+| user2@example.com | password | USER |
+
+#### Predefined Projects
+1. **Website Redesign** - Owned by manager@example.com
+2. **Mobile App Development** - Owned by manager2@example.com
+
+#### Predefined Tasks
+1. **Design Homepage** - Assigned to user@example.com (Website Redesign project)
+2. **Implement User Authentication** - Assigned to user2@example.com (Website Redesign project)
+3. **Create App Wireframes** - Assigned to user2@example.com (Mobile App Development project)
+4. **Set Up CI/CD Pipeline** - Unassigned (Mobile App Development project)
+
+Note: The database initialization happens because the application.properties has `spring.jpa.hibernate.ddl-auto=create`, which recreates the schema on each startup.
+
 ## Roles and Permissions Overview
 
 The application has three user roles with different permission levels:
