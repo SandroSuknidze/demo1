@@ -149,5 +149,12 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
      */
     Page<Task> findByAssignedUserIdAndProjectIdIn(Long userId, List<Long> projectIds, Pageable pageable);
 
-    Collection<Object> findByAssignedUserAndProjectId(User currentUser, Long projectId);
+    /**
+     * Find tasks assigned to a specific user in a specific project.
+     *
+     * @param assignedUser the user assigned to the tasks
+     * @param projectId the ID of the project to find tasks for
+     * @return a list of tasks assigned to the user in the specified project
+     */
+    List<Task> findByAssignedUserAndProjectId(User assignedUser, Long projectId);
 }

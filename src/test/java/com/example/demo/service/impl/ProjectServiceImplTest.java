@@ -7,6 +7,7 @@ import com.example.demo.exception.AccessDeniedException;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.mapper.ProjectMapper;
 import com.example.demo.model.entity.Project;
+import com.example.demo.model.entity.Task;
 import com.example.demo.model.entity.User;
 import com.example.demo.model.enums.Role;
 import com.example.demo.repository.ProjectRepository;
@@ -363,7 +364,7 @@ class ProjectServiceImplTest {
     void hasProjectAccess_WhenUserIsRegularUserWithAssignedTask_ShouldReturnTrue() {
         // Arrange
         when(userService.getCurrentUser()).thenReturn(regularUser);
-        when(taskRepository.findByAssignedUserAndProjectId(regularUser, 1L)).thenReturn(List.of(mock(Object.class)));
+        when(taskRepository.findByAssignedUserAndProjectId(regularUser, 1L)).thenReturn(List.of(mock(Task.class)));
 
         // Act
         boolean result = projectService.hasProjectAccess(1L);

@@ -1,3 +1,4 @@
+
 # Task Tracker API
 
 A Spring Boot application for managing projects and tasks with role-based access control.
@@ -35,6 +36,23 @@ A Spring Boot application for managing projects and tasks with role-based access
 The API documentation is available via Swagger UI:
 - URL: `http://localhost:8080/swagger-ui.html`
 - API Docs: `http://localhost:8080/api-docs`
+
+### Postman Collection
+A Postman collection is available for testing the API:
+- Location: [docs/postman/Task Management API.postman_collection.json](docs/postman/Task%20Management%20API.postman_collection.json)
+
+#### Using the Postman Collection
+1. Import the collection into Postman using the "Import" button
+2. Set up an environment with variables:
+   - `baseUrl`: Your API base URL (e.g., `http://localhost:8080`)
+   - `bearerToken`: Will be automatically set after login
+
+#### Testing with Admin Access
+For full access to all API features, you can log in with the following credentials:
+- Email: `admin@example.com`
+- Password: `password`
+
+This admin account has unrestricted access to all endpoints and features.
 
 ## Roles and Permissions Overview
 
